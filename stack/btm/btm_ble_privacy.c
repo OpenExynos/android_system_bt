@@ -31,6 +31,16 @@
 #include "vendor_hcidefs.h"
 #include "btm_int.h"
 #include "device/include/controller.h"
+/* SCSC_INTERNAL START -> Do not integrate to customer branches */
+/**
+ * SSB-10459 Add LE Privacy LOG Info to Android-M for testing with FLINK
+ * Print info message when a LE Privacy 1.2 supported device has been added
+ * to the resolving list.
+ */
+#if defined CONFIG_SAMSUNG_SCSC_WIFIBT
+#include <cutils/log.h>
+#endif
+/* SCSC_INTERNAL END -> Do not integrate to customer branches */
 
 /* RPA offload VSC specifics */
 #define BTM_BLE_META_IRK_ENABLE         0x01
@@ -295,7 +305,28 @@ void btm_ble_add_resolving_list_entry_complete(UINT8 *p, UINT16 evt_len)
             STREAM_TO_UINT8(btm_cb.ble_ctr_cb.resolving_list_avail_size, p);
         }
         else
+/* SCSC_INTERNAL START -> Do not integrate to customer branches */
+        /**
+         * SSB-10459 Add LE Privacy LOG Info to Android-M for testing with FLINK
+         * Print info message when a LE Privacy 1.2 supported device has been added
+         * to the resolving list.
+         */
+#if defined CONFIG_SAMSUNG_SCSC_WIFIBT
+        {
+#endif
+/* SCSC_INTERNAL END -> Do not integrate to customer branches */
             btm_cb.ble_ctr_cb.resolving_list_avail_size --;
+/* SCSC_INTERNAL START -> Do not integrate to customer branches */
+        /**
+         * SSB-10459 Add LE Privacy LOG Info to Android-M for testing with FLINK
+         * Print info message when a LE Privacy 1.2 supported device has been added
+         * to the resolving list.
+         */
+#if defined CONFIG_SAMSUNG_SCSC_WIFIBT
+            ALOGI("Added_device_to_resolving_list. New_list_size: %d", btm_cb.ble_ctr_cb.resolving_list_avail_size);
+        }
+#endif
+/* SCSC_INTERNAL END -> Do not integrate to customer branches */
     }
     else if (status == HCI_ERR_MEMORY_FULL) /* BT_ERROR_CODE_MEMORY_CAPACITY_EXCEEDED  */
     {
@@ -338,7 +369,28 @@ void btm_ble_remove_resolving_list_entry_complete(UINT8 *p, UINT16 evt_len)
             STREAM_TO_UINT8(btm_cb.ble_ctr_cb.resolving_list_avail_size, p);
         }
         else
+/* SCSC_INTERNAL START -> Do not integrate to customer branches */
+        /**
+         * SSB-10459 Add LE Privacy LOG Info to Android-M for testing with FLINK
+         * Print info message when a LE Privacy 1.2 supported device has been added
+         * to the resolving list.
+         */
+#if defined CONFIG_SAMSUNG_SCSC_WIFIBT
+        {
+#endif
+/* SCSC_INTERNAL END -> Do not integrate to customer branches */
             btm_cb.ble_ctr_cb.resolving_list_avail_size++;
+/* SCSC_INTERNAL START -> Do not integrate to customer branches */
+        /**
+         * SSB-10459 Add LE Privacy LOG Info to Android-M for testing with FLINK
+         * Print info message when a LE Privacy 1.2 supported device has been added
+         * to the resolving list.
+         */
+#if defined CONFIG_SAMSUNG_SCSC_WIFIBT
+            ALOGI("Removed_device_from_resolving_list. New_list_size: %d", btm_cb.ble_ctr_cb.resolving_list_avail_size);
+        }
+#endif
+/* SCSC_INTERNAL END -> Do not integrate to customer branches */
     }
 }
 

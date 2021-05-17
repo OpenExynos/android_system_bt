@@ -94,7 +94,7 @@ enum
 typedef void (*tBTA_AG_ACTION)(tBTA_AG_SCB *p_scb, tBTA_AG_DATA *p_data);
 
 /* action functions */
-const tBTA_AG_ACTION bta_ag_action[] =
+const tBTA_AG_ACTION bta_ag_action[BTA_AG_NUM_ACTIONS] =
 {
     bta_ag_register,
     bta_ag_deregister,
@@ -837,23 +837,18 @@ void bta_ag_sm_execute(tBTA_AG_SCB *p_scb, UINT16 event, tBTA_AG_DATA *p_data)
     tBTA_AG_ST_TBL      state_table;
     UINT8               action;
     int                 i;
-
 #if BTA_AG_DEBUG == TRUE
-    UINT16  in_event = event;
-    UINT8   in_state = p_scb->state;
+    UINT16  previous_event = event;
+    UINT8   previous_state = p_scb->state;
+#endif
 
     /* Ignore displaying of AT results when not connected (Ignored in state machine) */
-    if (in_event != BTA_AG_API_RESULT_EVT || p_scb->state == BTA_AG_OPEN_ST)
+    if ((event != BTA_AG_API_RESULT_EVT || p_scb->state == BTA_AG_OPEN_ST) &&
+         event != BTA_AG_CI_SCO_DATA_EVT)
     {
-        APPL_TRACE_EVENT("AG evt (hdl 0x%04x): State %d (%s), Event 0x%04x (%s)",
-                           bta_ag_scb_to_idx(p_scb),
-                           p_scb->state, bta_ag_state_str(p_scb->state),
-                           event, bta_ag_evt_str(event, p_data->api_result.result));
+        APPL_TRACE_EVENT("%s: AG evt (hdl 0x%04x): State %d, Event 0x%04x",
+                          __func__, bta_ag_scb_to_idx(p_scb), p_scb->state, event);
     }
-#else
-    APPL_TRACE_EVENT("AG evt (hdl 0x%04x): State %d, Event 0x%04x",
-                      bta_ag_scb_to_idx(p_scb), p_scb->state, event);
-#endif
 
     event &= 0x00FF;
     if (event >= (BTA_AG_MAX_EVT & 0x00FF))
@@ -880,13 +875,14 @@ void bta_ag_sm_execute(tBTA_AG_SCB *p_scb, UINT16 event, tBTA_AG_DATA *p_data)
             break;
         }
     }
+
 #if BTA_AG_DEBUG == TRUE
-    if (p_scb->state != in_state)
+    if (p_scb->state != previous_state)
     {
         APPL_TRACE_EVENT("BTA AG State Change: [%s] -> [%s] after Event [%s]",
-                      bta_ag_state_str(in_state),
+                      bta_ag_state_str(previous_state),
                       bta_ag_state_str(p_scb->state),
-                      bta_ag_evt_str(in_event, p_data->api_result.result));
+                      bta_ag_evt_str(previous_event, p_data->api_result.result));
     }
 #endif
 }

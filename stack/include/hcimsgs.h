@@ -22,6 +22,7 @@
 #include "bt_target.h"
 #include "hcidefs.h"
 #include "bt_types.h"
+#include "device/include/esco_parameters.h"
 
 void bte_main_hci_send(BT_HDR *p_msg, UINT16 event);
 void bte_main_lpm_allow_bt_device_sleep(void);
@@ -226,7 +227,7 @@ extern BOOLEAN btsnd_hcic_read_rmt_clk_offset(UINT16 handle);   /* Remote Clock 
 extern BOOLEAN btsnd_hcic_read_lmp_handle(UINT16 handle);       /* Remote LMP Handle */
 
 extern BOOLEAN btsnd_hcic_setup_esco_conn (UINT16 handle,
-                                           UINT32 tx_bw, UINT32 rx_bw,
+                                           UINT32 transmit_bandwidth, UINT32 receive_bandwidth,
                                            UINT16 max_latency, UINT16 voice,
                                            UINT8 retrans_effort,
                                            UINT16 packet_types);
@@ -242,7 +243,7 @@ extern BOOLEAN btsnd_hcic_setup_esco_conn (UINT16 handle,
 
 
 extern BOOLEAN btsnd_hcic_accept_esco_conn (BD_ADDR bd_addr,
-                                            UINT32 tx_bw, UINT32 rx_bw,
+                                            UINT32 transmit_bandwidth, UINT32 receive_bandwidth,
                                             UINT16 max_latency,
                                             UINT16 content_fmt,
                                             UINT8 retrans_effort,
@@ -527,6 +528,10 @@ extern BOOLEAN btsnd_hcic_write_scan_enable(UINT8 flag);                /* Write
 extern BOOLEAN btsnd_hcic_write_pagescan_cfg(UINT16 interval,
                                              UINT16 window);            /* Write Page Scan Activity */
 
+#define HCIC_PARAM_SIZE_ENH_SET_ESCO_CONN   59
+#define HCIC_PARAM_SIZE_ENH_ACC_ESCO_CONN   63
+
+
 #define HCIC_PARAM_SIZE_WRITE_PAGESCAN_CFG  4
 
 #define HCI_SCAN_CFG_INTERVAL_OFF       0
@@ -607,6 +612,16 @@ extern BOOLEAN btsnd_hcic_enable_test_mode (void);                     /* Enable
 extern BOOLEAN btsnd_hcic_write_pagescan_type(UINT8 type);             /* Write Page Scan Type */
 extern BOOLEAN btsnd_hcic_write_inqscan_type(UINT8 type);              /* Write Inquiry Scan Type */
 extern BOOLEAN btsnd_hcic_write_inquiry_mode(UINT8 type);              /* Write Inquiry Mode */
+
+
+/* Enhanced setup SCO connection (CSA2) */
+extern BOOLEAN btsnd_hcic_enhanced_set_up_synchronous_connection(UINT16 conn_handle,
+                                                                 enh_esco_params_t *p_parms);
+
+/* Enhanced accept SCO connection request (CSA2) */
+extern BOOLEAN btsnd_hcic_enhanced_accept_synchronous_connection(BD_ADDR bd_addr,
+                                                                 enh_esco_params_t *p_parms);
+
 
 #define HCI_DATA_HANDLE_MASK 0x0FFF
 

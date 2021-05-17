@@ -92,12 +92,12 @@ void btm_dev_init (void)
                                          BTM_ACL_PKT_TYPES_MASK_DH3 + BTM_ACL_PKT_TYPES_MASK_DM3 +
                                          BTM_ACL_PKT_TYPES_MASK_DH5 + BTM_ACL_PKT_TYPES_MASK_DM5;
 
-    btm_cb.btm_sco_pkt_types_supported = BTM_SCO_PKT_TYPES_MASK_HV1 +
-                                         BTM_SCO_PKT_TYPES_MASK_HV2 +
-                                         BTM_SCO_PKT_TYPES_MASK_HV3 +
-                                         BTM_SCO_PKT_TYPES_MASK_EV3 +
-                                         BTM_SCO_PKT_TYPES_MASK_EV4 +
-                                         BTM_SCO_PKT_TYPES_MASK_EV5;
+    btm_cb.btm_sco_pkt_types_supported = ESCO_PKT_TYPES_MASK_HV1 +
+                                         ESCO_PKT_TYPES_MASK_HV2 +
+                                         ESCO_PKT_TYPES_MASK_HV3 +
+                                         ESCO_PKT_TYPES_MASK_EV3 +
+                                         ESCO_PKT_TYPES_MASK_EV4 +
+                                         ESCO_PKT_TYPES_MASK_EV5;
 }
 
 
@@ -321,23 +321,23 @@ static void btm_decode_ext_features_page (UINT8 page_number, const UINT8 *p_feat
 #endif
         if (HCI_SCO_LINK_SUPPORTED(p_features))
         {
-            btm_cb.btm_sco_pkt_types_supported = BTM_SCO_PKT_TYPES_MASK_HV1;
+            btm_cb.btm_sco_pkt_types_supported = ESCO_PKT_TYPES_MASK_HV1;
 
             if (HCI_HV2_PACKETS_SUPPORTED(p_features))
-                btm_cb.btm_sco_pkt_types_supported |= BTM_SCO_PKT_TYPES_MASK_HV2;
+                btm_cb.btm_sco_pkt_types_supported |= ESCO_PKT_TYPES_MASK_HV2;
 
             if (HCI_HV3_PACKETS_SUPPORTED(p_features))
-                btm_cb.btm_sco_pkt_types_supported |= BTM_SCO_PKT_TYPES_MASK_HV3;
+                btm_cb.btm_sco_pkt_types_supported |= ESCO_PKT_TYPES_MASK_HV3;
         }
 
         if (HCI_ESCO_EV3_SUPPORTED(p_features))
-            btm_cb.btm_sco_pkt_types_supported |= BTM_SCO_PKT_TYPES_MASK_EV3;
+            btm_cb.btm_sco_pkt_types_supported |= ESCO_PKT_TYPES_MASK_EV3;
 
         if (HCI_ESCO_EV4_SUPPORTED(p_features))
-            btm_cb.btm_sco_pkt_types_supported |= BTM_SCO_PKT_TYPES_MASK_EV4;
+            btm_cb.btm_sco_pkt_types_supported |= ESCO_PKT_TYPES_MASK_EV4;
 
         if (HCI_ESCO_EV5_SUPPORTED(p_features))
-            btm_cb.btm_sco_pkt_types_supported |= BTM_SCO_PKT_TYPES_MASK_EV5;
+            btm_cb.btm_sco_pkt_types_supported |= ESCO_PKT_TYPES_MASK_EV5;
 #if BTM_SCO_INCLUDED == TRUE
         if (btm_cb.btm_sco_pkt_types_supported & BTM_ESCO_LINK_ONLY_MASK)
         {
@@ -347,23 +347,23 @@ static void btm_decode_ext_features_page (UINT8 page_number, const UINT8 *p_feat
             if (HCI_EDR_ESCO_2MPS_SUPPORTED(p_features))
             {
                 if (!HCI_3_SLOT_EDR_ESCO_SUPPORTED(p_features))
-                    btm_cb.btm_sco_pkt_types_supported |= BTM_SCO_PKT_TYPES_MASK_NO_2_EV5;
+                    btm_cb.btm_sco_pkt_types_supported |= ESCO_PKT_TYPES_MASK_NO_2_EV5;
             }
             else
             {
-                btm_cb.btm_sco_pkt_types_supported |= (BTM_SCO_PKT_TYPES_MASK_NO_2_EV3 +
-                                                       BTM_SCO_PKT_TYPES_MASK_NO_2_EV5);
+                btm_cb.btm_sco_pkt_types_supported |= (ESCO_PKT_TYPES_MASK_NO_2_EV3 +
+                                                       ESCO_PKT_TYPES_MASK_NO_2_EV5);
             }
 
             if (HCI_EDR_ESCO_3MPS_SUPPORTED(p_features))
             {
                 if (!HCI_3_SLOT_EDR_ESCO_SUPPORTED(p_features))
-                    btm_cb.btm_sco_pkt_types_supported |= BTM_SCO_PKT_TYPES_MASK_NO_3_EV5;
+                    btm_cb.btm_sco_pkt_types_supported |= ESCO_PKT_TYPES_MASK_NO_3_EV5;
             }
             else
             {
-                btm_cb.btm_sco_pkt_types_supported |= (BTM_SCO_PKT_TYPES_MASK_NO_3_EV3 +
-                                                       BTM_SCO_PKT_TYPES_MASK_NO_3_EV5);
+                btm_cb.btm_sco_pkt_types_supported |= (ESCO_PKT_TYPES_MASK_NO_3_EV3 +
+                                                       ESCO_PKT_TYPES_MASK_NO_3_EV5);
             }
         }
 #endif

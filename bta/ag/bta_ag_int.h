@@ -303,13 +303,11 @@ typedef struct
 /* type for sco data */
 typedef struct
 {
-    tBTM_ESCO_CONN_REQ_EVT_DATA  conn_data;     /* SCO data for pending conn request */
-    tBTA_AG_SCB                 *p_curr_scb;    /* SCB associated with SCO connection */
-    tBTA_AG_SCB                 *p_xfer_scb;    /* SCB associated with SCO transfer */
-    UINT16                      cur_idx;        /* SCO handle */
-    UINT8                       state;          /* SCO state variable */
-    BOOLEAN                     param_updated;  /* if params were updated to non-default */
-    tBTM_ESCO_PARAMS            params;         /* ESCO parameters */
+    tBTM_ESCO_CONN_REQ_EVT_DATA conn_data; /* SCO data for pending conn request */
+    tBTA_AG_SCB             *p_curr_scb;   /* SCB associated with SCO connection */
+    tBTA_AG_SCB             *p_xfer_scb;   /* SCB associated with SCO transfer */
+    UINT16                  cur_idx;       /* SCO handle */
+    UINT8                   state;         /* SCO state variable */
 } tBTA_AG_SCO_CB;
 
 
@@ -427,7 +425,6 @@ extern void bta_ag_send_bcs(tBTA_AG_SCB *p_scb, tBTA_AG_DATA *p_data);
 #endif
 extern void bta_ag_send_ring(tBTA_AG_SCB *p_scb, tBTA_AG_DATA *p_data);
 extern void bta_ag_ci_sco_data(tBTA_AG_SCB *p_scb, tBTA_AG_DATA *p_data);
-extern void bta_ag_set_esco_param(BOOLEAN set_reset, tBTM_ESCO_PARAMS *param);
 extern void bta_ag_ci_rx_data(tBTA_AG_SCB *p_scb, tBTA_AG_DATA *p_data);
 extern void bta_ag_rcvd_slc_ready(tBTA_AG_SCB *p_scb, tBTA_AG_DATA *p_data);
 #endif /* BTA_AG_INT_H */

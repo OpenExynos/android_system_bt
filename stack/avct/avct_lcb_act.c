@@ -567,7 +567,6 @@ void avct_lcb_send_msg(tAVCT_LCB *p_lcb, tAVCT_LCB_EVT *p_data)
         /* set header len */
         hdr_len = avct_lcb_pkt_type_len[pkt_type];
 
-        /* if remaining msg must be fragmented */
         if (p_data->ul_msg.p_buf->len > (p_lcb->peer_mtu - hdr_len))
         {
             /* get a new buffer for fragment we are sending */

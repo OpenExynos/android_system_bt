@@ -2,6 +2,21 @@ LOCAL_PATH:= $(call my-dir)
 
 include $(CLEAR_VARS)
 
+##
+# SSB-8524 SCSC changes for Android.mk files
+# Setup bdroid local make variables for handling configuration
+##
+ifeq ($(CONFIG_SAMSUNG_SCSC_WIFIBT),true)
+ifneq ($(BOARD_BLUETOOTH_BDROID_BUILDCFG_INCLUDE_DIR),)
+  bdroid_C_INCLUDES := $(BOARD_BLUETOOTH_BDROID_BUILDCFG_INCLUDE_DIR)
+  bdroid_CFLAGS := -DHAS_BDROID_BUILDCFG
+else
+  $(warning NO BOARD_BLUETOOTH_BDROID_BUILDCFG_INCLUDE_DIR, using only generic configuration)
+  bdroid_C_INCLUDES :=
+  bdroid_CFLAGS := -DHAS_NO_BDROID_BUILDCFG
+endif
+endif
+
 LOCAL_C_INCLUDES:= . \
                    $(LOCAL_PATH)/include \
                    $(LOCAL_PATH)/avct \
@@ -41,6 +56,15 @@ LOCAL_CFLAGS += $(bdroid_CFLAGS) -std=c99
 ifeq ($(BOARD_HAVE_BLUETOOTH_BCM),true)
 LOCAL_CFLAGS += \
 	-DBOARD_HAVE_BLUETOOTH_BCM
+endif
+
+##
+# SSB-8524 SCSC changes for Android.mk files
+# Enable BT/WIFI related code changes in Android source files
+##
+ifeq ($(CONFIG_SAMSUNG_SCSC_WIFIBT),true)
+LOCAL_CFLAGS += \
+    -DCONFIG_SAMSUNG_SCSC_WIFIBT
 endif
 
 LOCAL_SRC_FILES:= \

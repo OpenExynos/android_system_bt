@@ -115,6 +115,13 @@ static int uhid_event(btif_hh_device_t *p_dev)
         break;
     case UHID_OPEN:
         APPL_TRACE_DEBUG("UHID_OPEN from uhid-dev\n");
+/**
+ * SSB-13163 HID mouse pointer is not working
+ * Set the ready condition on open as well
+ */
+#ifdef CONFIG_SAMSUNG_SCSC_WIFIBT
+        p_dev->ready_for_data = TRUE;
+#endif
         break;
     case UHID_CLOSE:
         APPL_TRACE_DEBUG("UHID_CLOSE from uhid-dev\n");

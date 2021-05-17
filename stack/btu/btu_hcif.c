@@ -1101,6 +1101,7 @@ static void btu_hcif_hdl_command_status (UINT16 opcode, UINT8 status, UINT8 *p_c
 
 #if BTM_SCO_INCLUDED == TRUE
                     case HCI_SETUP_ESCO_CONNECTION:
+                    case HCI_ENH_SETUP_ESCO_CONNECTION:
                         /* read handle out of stored command */
                         if (p_cmd != NULL)
                         {

@@ -55,7 +55,7 @@ void bta_ag_co_init(void)
 **                  codec - if WBS support is compiled in, codec to going to be used is provided
 **                      and when in SCO_STATE_SETUP, BTM_I2SPCMConfig() must be called with
 **                      the correct platform parameters.
-**                      in the other states codec type should not be ignored
+**                      In the other states codec type should not be ignored
 **
 ** Returns          void
 **

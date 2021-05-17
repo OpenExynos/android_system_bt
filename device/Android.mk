@@ -37,7 +37,8 @@ LOCAL_C_INCLUDES := \
 LOCAL_SRC_FILES := \
     src/classic/peer.c \
     src/controller.c \
-    src/interop.c
+    src/interop.c \
+    src/esco_parameters.c
 
 LOCAL_CFLAGS := -std=c99 $(bdroid_CFLAGS)
 LOCAL_MODULE := libbtdevice

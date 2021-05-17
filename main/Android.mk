@@ -126,6 +126,13 @@ ifeq ($(TARGET_PRODUCT), full_maguro)
      LOCAL_CFLAGS += -DTARGET_MAGURO
 endif
 
+##
+# SSB-8524 SCSC changes for Android.mk files
+# Enable BT/WIFI related code changes in Android source files
+##
+ifeq ($(CONFIG_SAMSUNG_SCSC_WIFIBT),true)
+LOCAL_CFLAGS += -DCONFIG_SAMSUNG_SCSC_WIFIBT
+endif
 LOCAL_SHARED_LIBRARIES := \
     libcutils \
     libdl \

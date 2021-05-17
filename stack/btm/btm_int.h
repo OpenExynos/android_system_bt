@@ -32,6 +32,7 @@
 #include "rfcdefs.h"
 
 #include "btm_api.h"
+#include "device/include/esco_parameters.h"
 
 #if (BLE_INCLUDED == TRUE)
 #include "btm_ble_int.h"
@@ -332,26 +333,26 @@ typedef void (tBTM_SCO_IND_CBACK) (UINT16 sco_inx) ;
                                  |  HCI_PKT_TYPES_MASK_HV3)
 
 /* Mask defining only the SCO types of an esco packet type */
-#define BTM_ESCO_PKT_TYPE_MASK  (   HCI_ESCO_PKT_TYPES_MASK_HV1 \
-                                 |  HCI_ESCO_PKT_TYPES_MASK_HV2 \
-                                 |  HCI_ESCO_PKT_TYPES_MASK_HV3)
+#define BTM_ESCO_PKT_TYPE_MASK  (   ESCO_PKT_TYPES_MASK_HV1 \
+                                 |  ESCO_PKT_TYPES_MASK_HV2 \
+                                 |  ESCO_PKT_TYPES_MASK_HV3)
 
 #define BTM_SCO_2_ESCO(scotype)  ((UINT16)(((scotype) & BTM_SCO_PKT_TYPE_MASK) >> 5))
 #define BTM_ESCO_2_SCO(escotype) ((UINT16)(((escotype) & BTM_ESCO_PKT_TYPE_MASK) << 5))
 
 /* Define masks for supported and exception 2.0 SCO packet types
 */
-#define BTM_SCO_SUPPORTED_PKTS_MASK      (HCI_ESCO_PKT_TYPES_MASK_HV1       | \
-                                          HCI_ESCO_PKT_TYPES_MASK_HV2       | \
-                                          HCI_ESCO_PKT_TYPES_MASK_HV3       | \
-                                          HCI_ESCO_PKT_TYPES_MASK_EV3       | \
-                                          HCI_ESCO_PKT_TYPES_MASK_EV4       | \
-                                          HCI_ESCO_PKT_TYPES_MASK_EV5)
+#define BTM_SCO_SUPPORTED_PKTS_MASK      (ESCO_PKT_TYPES_MASK_HV1       | \
+                                          ESCO_PKT_TYPES_MASK_HV2       | \
+                                          ESCO_PKT_TYPES_MASK_HV3       | \
+                                          ESCO_PKT_TYPES_MASK_EV3       | \
+                                          ESCO_PKT_TYPES_MASK_EV4       | \
+                                          ESCO_PKT_TYPES_MASK_EV5)
 
-#define BTM_SCO_EXCEPTION_PKTS_MASK      (HCI_ESCO_PKT_TYPES_MASK_NO_2_EV3  | \
-                                          HCI_ESCO_PKT_TYPES_MASK_NO_3_EV3  | \
-                                          HCI_ESCO_PKT_TYPES_MASK_NO_2_EV5  | \
-                                          HCI_ESCO_PKT_TYPES_MASK_NO_3_EV5)
+#define BTM_SCO_EXCEPTION_PKTS_MASK      (ESCO_PKT_TYPES_MASK_NO_2_EV3  | \
+                                          ESCO_PKT_TYPES_MASK_NO_3_EV3  | \
+                                          ESCO_PKT_TYPES_MASK_NO_2_EV5  | \
+                                          ESCO_PKT_TYPES_MASK_NO_3_EV5)
 
 
 #define BTM_SCO_ROUTE_UNKNOWN       0xff
@@ -359,10 +360,10 @@ typedef void (tBTM_SCO_IND_CBACK) (UINT16 sco_inx) ;
 /* Define the structure that contains (e)SCO data */
 typedef struct
 {
-    tBTM_ESCO_CBACK    *p_esco_cback;   /* Callback for eSCO events     */
-    tBTM_ESCO_PARAMS    setup;
-    tBTM_ESCO_DATA      data;           /* Connection complete information */
-    UINT8               hci_status;
+    tBTM_ESCO_CBACK         *p_esco_cback;   /* Callback for eSCO events     */
+    enh_esco_params_t       setup;
+    tBTM_ESCO_DATA          data;           /* Connection complete information */
+    UINT8                   hci_status;
 } tBTM_ESCO_INFO;
 
 /* Define the structure used for SCO Management
@@ -391,7 +392,7 @@ typedef struct
     UINT32               xmit_window_size; /* Total SCO window in bytes  */
 #endif
     tSCO_CONN            sco_db[BTM_MAX_SCO_LINKS];
-    tBTM_ESCO_PARAMS     def_esco_parms;
+    enh_esco_params_t    def_esco_parms;
     BD_ADDR              xfer_addr;
     UINT16               sco_disc_reason;
     BOOLEAN              esco_supported;    /* TRUE if 1.2 cntlr AND supports eSCO links */
@@ -402,13 +403,13 @@ typedef struct
 #if BTM_SCO_HCI_INCLUDED == TRUE
     tBTM_SCO_ROUTE_TYPE  sco_path;
 #endif
-
+    esco_data_path_t     sco_route;        /* HCI, PCM, or TEST */
 } tSCO_CB;
 
 
 #if BTM_SCO_INCLUDED == TRUE
 extern void     btm_set_sco_ind_cback( tBTM_SCO_IND_CBACK *sco_ind_cb );
-extern void     btm_accept_sco_link(UINT16 sco_inx, tBTM_ESCO_PARAMS *p_setup,
+extern void     btm_accept_sco_link(UINT16 sco_inx, enh_esco_params_t *p_setup,
                                     tBTM_SCO_CB *p_conn_cb, tBTM_SCO_CB *p_disc_cb);
 extern void     btm_reject_sco_link(UINT16 sco_inx );
 extern void btm_sco_chk_pend_rolechange (UINT16 hci_handle);
@@ -417,7 +418,7 @@ extern void btm_sco_chk_pend_rolechange (UINT16 hci_handle);
 #define btm_reject_sco_link(sco_inx)
 #define btm_set_sco_ind_cback(sco_ind_cb)
 #define btm_sco_chk_pend_rolechange(hci_handle)
-#endif  /* BTM_SCO_INCLUDED */
+#endif
 
 /*
 ** Define structure for Security Service Record.
@@ -1004,7 +1005,7 @@ extern BOOLEAN btm_is_sco_active (UINT16 handle);
 extern void btm_remove_sco_links (BD_ADDR bda);
 extern BOOLEAN btm_is_sco_active_by_bdaddr (BD_ADDR remote_bda);
 
-extern tBTM_SCO_TYPE btm_read_def_esco_mode (tBTM_ESCO_PARAMS *p_parms);
+extern void btm_read_def_esco_mode (enh_esco_params_t *p_parms);
 extern UINT16  btm_find_scb_by_handle (UINT16 handle);
 extern void btm_sco_flush_sco_data(UINT16 sco_inx);
 

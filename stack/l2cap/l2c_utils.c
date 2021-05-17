@@ -2528,6 +2528,20 @@ BOOLEAN l2cu_set_acl_priority (BD_ADDR bd_addr, UINT8 priority, BOOLEAN reset_af
             }
         }
     }
+    /**
+    * SSB-13987 L2CAP_PRIORITY_HIGH is only set for BRCM chips
+    * The l2cu_set_acl_priority() only has an effect if BTM_IS_BRCM_CONTROLLER() returns TRUE.
+    * This means the host patch ported in SSB-12679 will not have any effect.
+    */
+#ifdef CONFIG_SAMSUNG_SCSC_WIFIBT
+    /* Adjust lmp buffer allocation for this channel if priority changed */
+    if (p_lcb->acl_priority != priority)
+    {
+        p_lcb->acl_priority = priority;
+        l2c_link_adjust_allocation();
+    }
+#endif
+
     return(TRUE);
 }
 
@@ -3187,6 +3201,35 @@ static tL2C_CCB *l2cu_get_next_channel_in_rr(tL2C_LCB *p_lcb)
         }
     }
 
+    /**
+     * SSB-12679 Port coex host patches to Android M, part 2.
+     * Prioritise A2DP data over non-A2DP data on the same ACL,
+     * and improve data scheduling to HCI when A2DP is involved
+     */
+#ifdef CONFIG_SAMSUNG_SCSC_WIFIBT
+
+    if (p_serve_ccb)
+    {
+        BT_HDR *p_buf = (BT_HDR *)p_serve_ccb->xmit_hold_q._p_first;
+        UINT16 acl_packet_size = controller_get_interface()->get_acl_packet_size_classic();
+        UINT16 packet_size = acl_packet_size - L2CAP_PKT_OVERHEAD;
+        if (packet_size > 0)
+        {
+            UINT16 min_credits_needed = (p_buf->len / packet_size) + MIN_NUMBER_A2DP_SDUS;
+            if ((p_buf->len % packet_size) != 0)
+            {
+                min_credits_needed++;
+            }
+
+            if ((p_serve_ccb->ccb_priority == L2CAP_CHNL_PRIORITY_LOW) && (p_lcb->acl_priority == L2CAP_PRIORITY_HIGH) &&
+                    ((p_lcb->link_xmit_quota - p_lcb->sent_not_acked) <= min_credits_needed) &&
+                    (!p_lcb->partial_segment_being_sent))
+            {/* L2CAP priority low on a high priority ACL and not enough tokens for high priority SDU: do not send yet!*/
+                p_serve_ccb = NULL;
+            }
+        }
+    }
+#endif
     if (p_serve_ccb)
     {
         L2CAP_TRACE_DEBUG("RR service pri=%d, quota=%d, lcid=0x%04x",

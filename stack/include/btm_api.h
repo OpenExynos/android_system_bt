@@ -27,7 +27,8 @@
 
 #include "bt_target.h"
 #include "sdp_api.h"
-#include "hcidefs.h"
+#include "hcimsgs.h"
+#include "device/include/esco_parameters.h"
 
 #include "smp_api.h"
 /*****************************************************************************
@@ -899,33 +900,19 @@ typedef void (tBTM_ACL_DB_CHANGE_CB) (BD_ADDR p_bda, DEV_CLASS p_dc,
 /* Define first active SCO index */
 #define BTM_FIRST_ACTIVE_SCO_INDEX  BTM_MAX_SCO_LINKS
 
-/* Define SCO packet types used in APIs */
-#define BTM_SCO_PKT_TYPES_MASK_HV1  HCI_ESCO_PKT_TYPES_MASK_HV1
-#define BTM_SCO_PKT_TYPES_MASK_HV2  HCI_ESCO_PKT_TYPES_MASK_HV2
-#define BTM_SCO_PKT_TYPES_MASK_HV3  HCI_ESCO_PKT_TYPES_MASK_HV3
-#define BTM_SCO_PKT_TYPES_MASK_EV3  HCI_ESCO_PKT_TYPES_MASK_EV3
-#define BTM_SCO_PKT_TYPES_MASK_EV4  HCI_ESCO_PKT_TYPES_MASK_EV4
-#define BTM_SCO_PKT_TYPES_MASK_EV5  HCI_ESCO_PKT_TYPES_MASK_EV5
-#define BTM_SCO_PKT_TYPES_MASK_NO_2_EV3  HCI_ESCO_PKT_TYPES_MASK_NO_2_EV3
-#define BTM_SCO_PKT_TYPES_MASK_NO_3_EV3  HCI_ESCO_PKT_TYPES_MASK_NO_3_EV3
-#define BTM_SCO_PKT_TYPES_MASK_NO_2_EV5  HCI_ESCO_PKT_TYPES_MASK_NO_2_EV5
-#define BTM_SCO_PKT_TYPES_MASK_NO_3_EV5  HCI_ESCO_PKT_TYPES_MASK_NO_3_EV5
 
-#define BTM_SCO_LINK_ONLY_MASK  (BTM_SCO_PKT_TYPES_MASK_HV1 | \
-                                 BTM_SCO_PKT_TYPES_MASK_HV2 | \
-                                 BTM_SCO_PKT_TYPES_MASK_HV3)
+#define BTM_SCO_LINK_ONLY_MASK  (ESCO_PKT_TYPES_MASK_HV1 | \
+                                 ESCO_PKT_TYPES_MASK_HV2 | \
+                                 ESCO_PKT_TYPES_MASK_HV3)
 
-#define BTM_ESCO_LINK_ONLY_MASK (BTM_SCO_PKT_TYPES_MASK_EV3 | \
-                                 BTM_SCO_PKT_TYPES_MASK_EV4 | \
-                                 BTM_SCO_PKT_TYPES_MASK_EV5)
+#define BTM_ESCO_LINK_ONLY_MASK (ESCO_PKT_TYPES_MASK_EV3 | \
+                                 ESCO_PKT_TYPES_MASK_EV4 | \
+                                 ESCO_PKT_TYPES_MASK_EV5)
 
 #define BTM_SCO_LINK_ALL_PKT_MASK   (BTM_SCO_LINK_ONLY_MASK     | \
                                      BTM_ESCO_LINK_ONLY_MASK)
 
 #define BTM_VALID_SCO_ALL_PKT_TYPE HCI_VALID_SCO_ALL_PKT_TYPE
-
-/* Passed in BTM_CreateSco if the packet type parameter should be ignored */
-#define BTM_IGNORE_SCO_PKT_TYPE     0
 
 /***************
 **  SCO Types
@@ -933,14 +920,6 @@ typedef void (tBTM_ACL_DB_CHANGE_CB) (BD_ADDR p_bda, DEV_CLASS p_dc,
 #define BTM_LINK_TYPE_SCO           HCI_LINK_TYPE_SCO
 #define BTM_LINK_TYPE_ESCO          HCI_LINK_TYPE_ESCO
 typedef UINT8 tBTM_SCO_TYPE;
-
-
-/*******************
-** SCO Routing Path
-********************/
-#define BTM_SCO_ROUTE_PCM           HCI_BRCM_SCO_ROUTE_PCM
-#define BTM_SCO_ROUTE_HCI           HCI_BRCM_SCO_ROUTE_HCI
-typedef UINT8 tBTM_SCO_ROUTE_TYPE;
 
 
 /*******************
@@ -955,14 +934,6 @@ typedef UINT16 tBTM_SCO_CODEC_TYPE;
 
 
 
-/*******************
-** SCO Air Mode Types
-********************/
-#define BTM_SCO_AIR_MODE_U_LAW          0
-#define BTM_SCO_AIR_MODE_A_LAW          1
-#define BTM_SCO_AIR_MODE_CVSD           2
-#define BTM_SCO_AIR_MODE_TRANSPNT       3
-typedef UINT8 tBTM_SCO_AIR_MODE_TYPE;
 
 /*******************
 ** SCO Voice Settings
@@ -993,46 +964,26 @@ typedef UINT8 tBTM_SCO_DATA_FLAG;
 **  SCO Callback Functions
 ****************************/
 typedef void (tBTM_SCO_CB) (UINT16 sco_inx);
-typedef void (tBTM_SCO_DATA_CB) (UINT16 sco_inx, BT_HDR *p_data, tBTM_SCO_DATA_FLAG status);
+typedef void (tBTM_SCO_DATA_CB) (UINT16 sco_inx, BT_HDR *p_data,
+                                 tBTM_SCO_DATA_FLAG status);
 
-/******************
-**  eSCO Constants
-*******************/
-#define BTM_64KBITS_RATE            0x00001f40  /* 64 kbits/sec data rate */
-
-/* Retransmission effort */
-#define BTM_ESCO_RETRANS_OFF        0
-#define BTM_ESCO_RETRANS_POWER      1
-#define BTM_ESCO_RETRANS_QUALITY    2
-#define BTM_ESCO_RETRANS_DONTCARE   0xff
-
-/* Max Latency Don't Care */
-#define BTM_ESCO_MAX_LAT_DONTCARE   0xffff
 
 /***************
 **  eSCO Types
 ****************/
 /* tBTM_ESCO_CBACK event types */
-#define BTM_ESCO_CHG_EVT        1
-#define BTM_ESCO_CONN_REQ_EVT   2
+#define BTM_ESCO_CHG_EVT            1
+#define BTM_ESCO_CONN_REQ_EVT       2
 typedef UINT8 tBTM_ESCO_EVT;
 
-/* Passed into BTM_SetEScoMode() */
+/* Structure passed with SCO change command and events.
+** Used by both Sync and Enhanced sync messaging
+*/
 typedef struct
 {
-    UINT32 tx_bw;
-    UINT32 rx_bw;
-    UINT16 max_latency;
-    UINT16 voice_contfmt;  /* Voice Settings or Content Format */
+    UINT16 max_latency_ms;
     UINT16 packet_types;
-    UINT8  retrans_effort;
-} tBTM_ESCO_PARAMS;
-
-typedef struct
-{
-    UINT16 max_latency;
-    UINT16 packet_types;
-    UINT8  retrans_effort;
+    UINT8  retransmission_effort;
 } tBTM_CHG_ESCO_PARAMS;
 
 /* Returned by BTM_ReadEScoLinkParms() */
@@ -3009,21 +2960,7 @@ extern UINT16 BTM_ReadScoDiscReason (void);
 **                  BTM_BUSY if there are one or more active (e)SCO links.
 **
 *******************************************************************************/
-extern tBTM_STATUS BTM_SetEScoMode (tBTM_SCO_TYPE sco_mode,
-                                    tBTM_ESCO_PARAMS *p_parms);
-
-/*******************************************************************************
-**
-** Function         BTM_SetWBSCodec
-**
-** Description      This function sends command to the controller to setup
-**                  WBS codec for the upcoming eSCO connection.
-**
-** Returns          BTM_SUCCESS.
-**
-**
-*******************************************************************************/
-extern tBTM_STATUS BTM_SetWBSCodec (tBTM_SCO_CODEC_TYPE codec_type);
+extern tBTM_STATUS BTM_SetEScoMode (enh_esco_params_t *p_parms);
 
 /*******************************************************************************
 **
@@ -3106,7 +3043,7 @@ extern tBTM_STATUS BTM_ChangeEScoLinkParms (UINT16 sco_inx,
 **
 *******************************************************************************/
 extern void BTM_EScoConnRsp (UINT16 sco_inx, UINT8 hci_status,
-                             tBTM_ESCO_PARAMS *p_parms);
+                             enh_esco_params_t *p_parms);
 
 /*******************************************************************************
 **
@@ -3866,17 +3803,15 @@ extern UINT8 BTM_GetEirSupportedServices( UINT32 *p_eir_uuid,    UINT8 **p,
 extern UINT8 BTM_GetEirUuidList( UINT8 *p_eir, UINT8 uuid_size, UINT8 *p_num_uuid,
                                  UINT8 *p_uuid_list, UINT8 max_num_uuid);
 
-/*****************************************************************************
-**  SCO OVER HCI
-*****************************************************************************/
+
 /*******************************************************************************
 **
 ** Function         BTM_ConfigScoPath
 **
-** Description      This function enable/disable SCO over HCI and registers SCO
+** Description      This function enables/disables SCO over HCI and registers SCO
 **                  data callback if SCO over HCI is enabled.
 **
-** Parameter        path: SCO or HCI
+** Parameter        path: PCM or HCI or test
 **                  p_sco_data_cb: callback function or SCO data if path is set
 **                                 to transport.
 **                  p_pcm_param: pointer to the PCM interface parameter. If a NULL
@@ -3886,17 +3821,17 @@ extern UINT8 BTM_GetEirUuidList( UINT8 *p_eir, UINT8 uuid_size, UINT8 *p_num_uui
 **                  err_data_rpt: Lisbon feature to enable the erronous data report
 **                                or not.
 **
-** Returns          BTM_SUCCESS if the successful.
-**                  BTM_NO_RESOURCES: no rsource to start the command.
-**                  BTM_ILLEGAL_VALUE: invalid callback function pointer.
-**                  BTM_CMD_STARTED :Command sent. Waiting for command cmpl event.
+** Returns          BTM_SUCCESS        if successful (PCM or Test mode).
+**                  BTM_NO_RESOURCES: no resources to start the command.
+**                  BTM_ILLEGAL_VALUE:  invalid callback function pointer.
+**                  BTM_CMD_STARTED : Command sent. Waiting for command cmpl event.
 **
 **
 *******************************************************************************/
-extern tBTM_STATUS BTM_ConfigScoPath (tBTM_SCO_ROUTE_TYPE path,
-                                      tBTM_SCO_DATA_CB *p_sco_data_cb,
-                                      tBTM_SCO_PCM_PARAM *p_pcm_param,
-                                      BOOLEAN err_data_rpt);
+extern tBTM_STATUS BTM_ConfigScoPath (esco_data_path_t path,
+                                              tBTM_SCO_DATA_CB *p_sco_data_cb,
+                                              tBTM_SCO_PCM_PARAM *p_pcm_param,
+                                              BOOLEAN err_data_rpt);
 
 /*******************************************************************************
 **

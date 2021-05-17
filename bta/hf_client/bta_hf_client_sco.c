@@ -21,52 +21,13 @@
 #include <bt_trace.h>
 #include <string.h>
 #include "bt_utils.h"
+#include "device/include/esco_parameters.h"
 
-#define BTA_HF_CLIENT_NO_EDR_ESCO  (BTM_SCO_PKT_TYPES_MASK_NO_2_EV3 | \
-                                    BTM_SCO_PKT_TYPES_MASK_NO_3_EV3 | \
-                                    BTM_SCO_PKT_TYPES_MASK_NO_2_EV5 | \
-                                    BTM_SCO_PKT_TYPES_MASK_NO_3_EV5)
+#define BTA_HF_CLIENT_NO_EDR_ESCO  (ESCO_PKT_TYPES_MASK_NO_2_EV3 | \
+                                    ESCO_PKT_TYPES_MASK_NO_3_EV3 | \
+                                    ESCO_PKT_TYPES_MASK_NO_2_EV5 | \
+                                    ESCO_PKT_TYPES_MASK_NO_3_EV5)
 
-static const tBTM_ESCO_PARAMS bta_hf_client_esco_params[] = {
-        /* SCO CVSD */
-        {
-                .rx_bw = BTM_64KBITS_RATE,
-                .tx_bw = BTM_64KBITS_RATE,
-                .max_latency = 10,
-                .voice_contfmt = BTM_VOICE_SETTING_CVSD,
-                .packet_types = (BTM_SCO_LINK_ONLY_MASK          |
-                                 BTM_SCO_PKT_TYPES_MASK_NO_2_EV3 |
-                                 BTM_SCO_PKT_TYPES_MASK_NO_3_EV3 |
-                                 BTM_SCO_PKT_TYPES_MASK_NO_2_EV5 |
-                                 BTM_SCO_PKT_TYPES_MASK_NO_3_EV5),
-                 .retrans_effort = BTM_ESCO_RETRANS_POWER,
-        },
-        /* ESCO CVSD */
-        {
-                .rx_bw = BTM_64KBITS_RATE,
-                .tx_bw = BTM_64KBITS_RATE,
-                .max_latency = 10,
-                .voice_contfmt = BTM_VOICE_SETTING_CVSD,
-                /* Allow controller to use all types available except 5-slot EDR */
-                .packet_types = (BTM_SCO_LINK_ALL_PKT_MASK |
-                                 BTM_SCO_PKT_TYPES_MASK_NO_2_EV5 |
-                                 BTM_SCO_PKT_TYPES_MASK_NO_3_EV5),
-                .retrans_effort = BTM_ESCO_RETRANS_POWER,
-        },
-        /* ESCO mSBC */
-        {
-                .rx_bw = BTM_64KBITS_RATE,
-                .tx_bw = BTM_64KBITS_RATE,
-                .max_latency = 13,
-                .voice_contfmt = BTM_VOICE_SETTING_TRANS,
-                /* Packet Types : EV3 + 2-EV3               */
-                .packet_types = (BTM_SCO_PKT_TYPES_MASK_EV3  |
-                                 BTM_SCO_PKT_TYPES_MASK_NO_3_EV3 |
-                                 BTM_SCO_PKT_TYPES_MASK_NO_2_EV5 |
-                                 BTM_SCO_PKT_TYPES_MASK_NO_3_EV5),
-                .retrans_effort = BTM_ESCO_RETRANS_QUALITY,
-        }
-};
 
 enum
 {
@@ -146,8 +107,8 @@ void bta_hf_client_cback_sco(UINT8 event)
 *******************************************************************************/
 static void bta_hf_client_sco_conn_rsp(tBTM_ESCO_CONN_REQ_EVT_DATA *p_data)
 {
-    tBTM_ESCO_PARAMS    resp;
-    UINT8               hci_status = HCI_SUCCESS;
+    enh_esco_params_t resp;
+    UINT8                hci_status = HCI_SUCCESS;
 
     APPL_TRACE_DEBUG("%s", __FUNCTION__);
 
@@ -155,11 +116,11 @@ static void bta_hf_client_sco_conn_rsp(tBTM_ESCO_CONN_REQ_EVT_DATA *p_data)
     {
         if (p_data->link_type == BTM_LINK_TYPE_SCO)
         {
-            resp = bta_hf_client_esco_params[0];
+            resp = esco_parameters_for_codec(ESCO_CODEC_CVSD);
         }
         else
         {
-            resp = bta_hf_client_esco_params[bta_hf_client_cb.scb.negotiated_codec];
+            resp = esco_parameters_for_codec(bta_hf_client_cb.scb.negotiated_codec);
         }
 
         /* tell sys to stop av if any */
@@ -280,7 +241,7 @@ static void bta_hf_client_sco_create(BOOLEAN is_orig)
 {
     tBTM_STATUS       status;
     UINT8            *p_bd_addr = NULL;
-    tBTM_ESCO_PARAMS params;
+    enh_esco_params_t params;
 
     APPL_TRACE_DEBUG("%s %d", __FUNCTION__, is_orig);
 
@@ -292,7 +253,7 @@ static void bta_hf_client_sco_create(BOOLEAN is_orig)
         return;
     }
 
-    params = bta_hf_client_esco_params[1];
+    params = esco_parameters_for_codec(ESCO_CODEC_MSBC_T1);
 
     /* if initiating set current scb and peer bd addr */
     if (is_orig)
@@ -300,7 +261,7 @@ static void bta_hf_client_sco_create(BOOLEAN is_orig)
         /* Attempt to use eSCO if remote host supports HFP >= 1.5 */
         if (bta_hf_client_cb.scb.peer_version >= HFP_VERSION_1_5 && !bta_hf_client_cb.scb.retry_with_sco_only)
         {
-            BTM_SetEScoMode(BTM_LINK_TYPE_ESCO, &params);
+            BTM_SetEScoMode(&params);
             /* If ESCO or EDR ESCO, retry with SCO only in case of failure */
             if((params.packet_types & BTM_ESCO_LINK_ONLY_MASK)
                ||!((params.packet_types & ~(BTM_ESCO_LINK_ONLY_MASK | BTM_SCO_LINK_ONLY_MASK)) ^ BTA_HF_CLIENT_NO_EDR_ESCO))
@@ -315,7 +276,7 @@ static void bta_hf_client_sco_create(BOOLEAN is_orig)
                 APPL_TRACE_API("retrying with SCO only");
             bta_hf_client_cb.scb.retry_with_sco_only = FALSE;
 
-            BTM_SetEScoMode(BTM_LINK_TYPE_SCO, &params);
+            BTM_SetEScoMode(&params);
         }
 
         /* tell sys to stop av if any */

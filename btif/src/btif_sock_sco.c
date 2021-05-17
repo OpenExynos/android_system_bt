@@ -28,6 +28,7 @@
 
 #include "btif_common.h"
 #include "osi/include/allocator.h"
+#include "device/include/esco_parameters.h"
 #include "osi/include/list.h"
 #include "osi/include/osi.h"
 #include "osi/include/log.h"
@@ -59,16 +60,6 @@ typedef struct {
 } sco_socket_t;
 
 // TODO: verify packet types that are being sent OTA.
-static tBTM_ESCO_PARAMS sco_parameters = {
-    BTM_64KBITS_RATE,                   /* TX Bandwidth (64 kbits/sec)              */
-    BTM_64KBITS_RATE,                   /* RX Bandwidth (64 kbits/sec)              */
-    0x000a,                             /* 10 ms (HS/HF can use EV3, 2-EV3, 3-EV3)  */
-    0x0060,                             /* Inp Linear, Air CVSD, 2s Comp, 16bit     */
-    (BTM_SCO_LINK_ALL_PKT_MASK       |
-     BTM_SCO_PKT_TYPES_MASK_NO_2_EV5 |
-     BTM_SCO_PKT_TYPES_MASK_NO_3_EV5),
-     BTM_ESCO_RETRANS_POWER       /* Retransmission effort                      */
-};
 
 static sco_socket_t *sco_socket_establish_locked(bool is_listening, const bt_bdaddr_t *bd_addr, int *sock_fd);
 static sco_socket_t *sco_socket_new(void);
@@ -96,7 +87,8 @@ bt_status_t btsock_sco_init(thread_t *thread_) {
   pthread_mutex_init(&lock, NULL);
 
   thread = thread_;
-  BTM_SetEScoMode(BTM_LINK_TYPE_ESCO, &sco_parameters);
+  enh_esco_params_t params = esco_parameters_for_codec(ESCO_CODEC_CVSD);
+  BTM_SetEScoMode(&params);
 
   return BT_STATUS_SUCCESS;
 }
@@ -151,7 +143,10 @@ static sco_socket_t *sco_socket_establish_locked(bool is_listening, const bt_bda
     goto error;
   }
 
-  tBTM_STATUS status = BTM_CreateSco((uint8_t *)bd_addr, !is_listening, sco_parameters.packet_types, &sco_socket->sco_handle, connect_completed_cb, disconnect_completed_cb);
+  enh_esco_params_t params = esco_parameters_for_codec(ESCO_CODEC_CVSD);
+  tBTM_STATUS status = BTM_CreateSco((uint8_t *)bd_addr, !is_listening,
+                                     params.packet_types, &sco_socket->sco_handle,
+                                     connect_completed_cb, disconnect_completed_cb);
   if (status != BTM_CMD_STARTED) {
     LOG_ERROR("%s unable to create SCO socket: %d", __func__, status);
     goto error;

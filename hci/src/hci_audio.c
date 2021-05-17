@@ -20,6 +20,7 @@
 
 #include <stdint.h>
 
+#include "device/include/controller.h"
 #include "hci/include/bt_vendor_lib.h"
 #include "hci/include/hci_audio.h"
 #include "hci/include/vendor.h"
@@ -34,6 +35,7 @@ void set_audio_state(uint16_t handle, sco_codec_t codec, sco_state_t state)
     audio_state.handle = handle;
     audio_state.peer_codec = codec;
     audio_state.state = state;
-
+    audio_state.use_enhanced_sco =
+       controller_get_interface()->supports_enhanced_setup_synchronous_connection();
     vendor_get_interface()->send_command(VENDOR_SET_AUDIO_STATE, &audio_state);
 }
